@@ -1,20 +1,14 @@
-
 import React, { useState } from "react";
-import {
-  StyleSheet,
-  Text,
-  View,
-  ImageBackground,
-  TouchableOpacity,
-  Keyboard,
-  Platform,
-  KeyboardAvoidingView,
-  TouchableWithoutFeedback
-} from 'react-native';
-import LoginScreen from './Screens/LoginScreen';
-import RegistrationScreen from './Screens/RegistrationScreen';
+
 import * as Font from 'expo-font';
 import AppLoading from 'expo-app-loading';
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
+
+import LoginScreen from './Screens/auth/LoginScreen';
+import RegistrationScreen from './Screens/auth/RegistrationScreen';
+import Home from "./Screens/user/Home";
 
 
 const loadFonts = async () => {
@@ -24,29 +18,30 @@ const loadFonts = async () => {
   });
 };
 
-export default function App() {
-  const [subscription, setSubscription] = useState(false);
-  const [isKeabordShown, setIsKeabordShown] = useState(false);
-  const [isReady, setIsReady] = useState(false);  
+const AuthStack = createStackNavigator(); // use for group of Navigators
+const MainTabs = createBottomTabNavigator(); // bottom navigation
 
-  function onPressToggleSubscription() {
-        setSubscription(!subscription);
+const useRoute = (isAuth) => {
+  if (!isAuth) {
+    return (      
+      <>
+        <AuthStack.Screen name="Login" component={LoginScreen} options={{headerShown: false}} />
+        <AuthStack.Screen name="Registration" component={RegistrationScreen} options={{headerShown: false}} />
+      </> 
+    );
   }
   
-  function onInputFocus() {
-    setIsKeabordShown(true);
-  }
+  return (    
+      <MainTabs.Screen name="Home" component={Home} options={{ headerShown: false }} />    
+  );
+}
 
-  function hideKeaboard() {
-    setIsKeabordShown(false);
-    Keyboard.dismiss();
-  }
+export default function App() { 
+  const [isReady, setIsReady] = useState(false);
+  const [isAuth, setIsAuth] = useState(true);
 
-  function marginWithKeaboard() {
-    if (isKeabordShown && subscription) return { marginBottom: -208 }
-    else if (isKeabordShown && !subscription) return { marginBottom: -142 }
-    return { marginBottom: 0 }
-  }
+  const routing = useRoute(isAuth);
+  
 
   if (!isReady) {
     return (<AppLoading
@@ -56,57 +51,23 @@ export default function App() {
   }
   
   return (
-    <TouchableWithoutFeedback onPress={hideKeaboard}>
+    <NavigationContainer>
 
-      <View style={styles.container}>
+      <AuthStack.Navigator initialRouteName={isAuth ? "Home" : "Login"}>
 
-        <ImageBackground source={require('./assets/images/img-bg.jpg')} style={styles.image}>
-          
-          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : ""}>
+        {routing}       
 
-            <View style={marginWithKeaboard()}>
-              {subscription ?
-                <LoginScreen onInputFocus={onInputFocus} hideKeaboard={hideKeaboard} /> :
-                <RegistrationScreen onInputFocus={onInputFocus} hideKeaboard={hideKeaboard} />}
+      </AuthStack.Navigator>
 
-              <TouchableOpacity
-                activeOpacity={1}                
-                style={ {backgroundColor: `#ffffff`, paddingBottom: subscription ? 111 : 45} }
-                onPress={onPressToggleSubscription}>
-                {subscription ?
-                  <Text style={styles.switchSubscriptionText}>have no account? SIGN UP</Text> : 
-                  <Text style={styles.switchSubscriptionText}>already have an account? LOG IN</Text>}
-              </TouchableOpacity>
-            </View>            
-
-          </KeyboardAvoidingView>         
-          
-        </ImageBackground>      
-        
-      </View>
-    </TouchableWithoutFeedback>
-    
+    </NavigationContainer>    
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
 
-  image: {
-    flex: 1,
-    resizeMode: "cover",
-    justifyContent: "flex-end",    
-    
-  },
+//  <AuthStack.Navigator initialRouteName="Login">
 
-  switchSubscriptionText: {    
-    color: "#1B4371",
-    fontSize: 16,
-    textAlign: 'center',
-    fontFamily: 'Roboto-Regular',
-  }
-  
-});
+//         <AuthStack.Screen name="Login" component={LoginScreen} options={{headerShown: false}} />
+//         <AuthStack.Screen name="Registration" component={RegistrationScreen} options={{headerShown: false}} />        
+//         <AuthStack.Screen name="Home" component={Home} />
+
+//  </AuthStack.Navigator>

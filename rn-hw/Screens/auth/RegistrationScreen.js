@@ -5,68 +5,76 @@ import {
     View,
     ImageBackground,
     TouchableOpacity,
-    TextInput,    
+    TextInput,
+    Keyboard,
+    Platform,
+    KeyboardAvoidingView,
+    TouchableWithoutFeedback
 } from 'react-native';
-
-import * as Font from 'expo-font';
-import AppLoading from 'expo-app-loading';
-
 
 const initialLogin = '';
 const initialEmail = '';
 const initialPassword = '';
 
-const loadFonts = async () => {
-    await Font.loadAsync({
-    "Roboto-Regular": require("../assets/fonts/Roboto-Regular.ttf"),    
-    "Roboto-Bold": require("../assets/fonts/Roboto-Bold.ttf"),
-  });
-};
-
-export default function RegistrationScreen({ onInputFocus, hideKeaboard }) {
-    const [visualPassword, setVisualPassword] = useState(true);
-    const [login, setLogin] = useState(initialLogin);
-    const [email, setEmail] = useState(initialEmail);
-    const [password, setPassword] = useState(initialPassword);
-    const [isReady, setIsReady] = useState(false);    
-
-    function onPressTogglePasswordVisualisation() {
-        setVisualPassword(!visualPassword);        
-    }
-
-    function onPressSubmitButton() {        
-        hideKeaboard();
-
-        setLogin(initialLogin);
-        setEmail(initialEmail);
-        setPassword(initialPassword);
-
-        console.log("SIGNUP", login);
-        console.log("SIGNUP", email);
-        console.log("SIGNUP", password);
-    }
-
-    if (!isReady) {
-        return (<AppLoading
-        startAsync={loadFonts}
-        onFinish={() => setIsReady(true)}
-        onError={err => console.log(err)} />);
-    }
+export default function RegistrationScreen({ navigation }) {
+  const [visualPassword, setVisualPassword] = useState(true);
+  const [isKeabordShown, setIsKeabordShown] = useState(false);
+  const [login, setLogin] = useState(initialLogin);
+  const [email, setEmail] = useState(initialEmail);
+  const [password, setPassword] = useState(initialPassword);    
   
-    return (        
-        <View style={styles.form}>
-            <View style={styles.avatar}>
+    
+
+  function onPressTogglePasswordVisualisation() {
+      setVisualPassword(!visualPassword);        
+  }
+
+  function onPressSubmitButton() {        
+    hideKeaboard();
+
+    setLogin(initialLogin);
+    setEmail(initialEmail);
+    setPassword(initialPassword);
+
+    console.log("SIGNUP", login);
+    console.log("SIGNUP", email);
+    console.log("SIGNUP", password);
+      
+    navigation.navigate("Home");
+  }
+  
+  function onInputFocus() {
+    setIsKeabordShown(true);
+  }
+
+  function hideKeaboard() {
+    setIsKeabordShown(false);
+    Keyboard.dismiss();
+  }
+  
+  return (
+    <TouchableWithoutFeedback onPress={hideKeaboard}>
+      
+      <View style={styles.container}>
+
+        <ImageBackground source={require('../../assets/images/img-bg.jpg')} style={styles.image}>
+          
+          <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : ""}>
+              
+            <View style={[styles.form, {marginBottom: isKeabordShown? -142 : 0}]} >
+
+              <View style={styles.avatar}>
                 <TouchableOpacity activeOpacity={0.6} style={styles.avatarBtn}>
-                    <ImageBackground
-                        source={require('../assets/images/add.jpg')}
-                        style={styles.btnimage}>                
-                    </ImageBackground>
+                  <ImageBackground
+                    source={require('../../assets/images/add.jpg')}
+                    style={styles.btnimage}>                
+                  </ImageBackground>
                 </TouchableOpacity>
-            </View>
+              </View>
 
-            <Text style={styles.title}>REGISTRATION</Text>
+              <Text style={styles.title}>REGISTRATION</Text>
 
-            <TextInput
+              <TextInput
                 placeholder='Login'
                 placeholderTextColor="#BDBDBD"
                 textAlign='left'
@@ -74,8 +82,8 @@ export default function RegistrationScreen({ onInputFocus, hideKeaboard }) {
                 value={login}
                 onFocus={onInputFocus}
                 onChangeText={(value) => setLogin(value)} />
-            
-            <TextInput
+              
+              <TextInput
                 placeholder='Email'
                 placeholderTextColor="#BDBDBD"
                 textAlign='left'
@@ -83,8 +91,8 @@ export default function RegistrationScreen({ onInputFocus, hideKeaboard }) {
                 value={email}
                 onFocus={onInputFocus}
                 onChangeText={(value) => setEmail(value)} />
-            
-            <TextInput
+              
+              <TextInput
                 placeholder='Password'
                 placeholderTextColor="#BDBDBD"
                 secureTextEntry={visualPassword}
@@ -93,28 +101,55 @@ export default function RegistrationScreen({ onInputFocus, hideKeaboard }) {
                 value={password}
                 onFocus={onInputFocus}
                 onChangeText={(value) => setPassword(value)} />
-            
-            <TouchableOpacity
+              
+              <TouchableOpacity
                 activeOpacity={0.6}
                 style={styles.showPassword}
                 onPress={onPressTogglePasswordVisualisation}>
                 <>{visualPassword ? <Text>Show</Text> : <Text>Hide</Text>}</>              
-            </TouchableOpacity>
+              </TouchableOpacity>
 
-            <TouchableOpacity
+              <TouchableOpacity
                 activeOpacity={0.6}
                 style={styles.submitBtn}
                 onPress={onPressSubmitButton}>
                 <Text style={styles.submitBtnText}>SIGN UP</Text>
-            </TouchableOpacity>
+              </TouchableOpacity>
 
-        </View>        
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => navigation.navigate("Login")}>
+                <Text style={styles.switchSubscriptionText}>already have an account? LOG IN</Text>
+              </TouchableOpacity>
+
+            </View>
+
+          </KeyboardAvoidingView>         
+          
+        </ImageBackground>      
+        
+      </View>
+    
+    </TouchableWithoutFeedback>
+            
   );
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+
+  image: {
+    flex: 1,
+    resizeMode: "cover",
+    justifyContent: "flex-end",    
+    
+  },
+
   form: {    
-    paddingBottom: 16,
+    paddingBottom: 45,
     paddingTop: 92,
     paddingLeft: 16,
     paddingRight: 16,
@@ -202,6 +237,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FF6C00',    
     paddingTop: 16,
     paddingBottom: 16,
+    marginBottom: 16,
     height: 51,        
   },
 
@@ -211,5 +247,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: 'center',
   },
+
+  switchSubscriptionText: {    
+    color: "#1B4371",
+    fontSize: 16,
+    textAlign: 'center',
+    fontFamily: 'Roboto-Regular',
+  }
   
 });
