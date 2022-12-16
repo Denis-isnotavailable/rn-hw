@@ -8,9 +8,9 @@ import {
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Entypo, Ionicons, AntDesign, MaterialCommunityIcons } from '@expo/vector-icons';
 
-import PostsScreen from "./PostsScreen";
 import ProfileScreen from "./ProfileScreen";
 import CreatePostsScreen from "./CreatePostsScreen";
+import PostsScreenNavigation from "./PostsScreenNavigation";
 
 const MainTabs = createBottomTabNavigator(); // bottom navigation
 
@@ -18,27 +18,16 @@ const MainTabs = createBottomTabNavigator(); // bottom navigation
 export default function Home() {
     return (
         <MainTabs.Navigator
-            initialRouteName="PostsScreen"
+            initialRouteName="PostsScreenNavigation"
             screenOptions={{ tabBarShowLabel: false,  }}
             tabBarOptions={{tabStyle: { borderTopWidth: 1, borderColor: 'rgba(0, 0, 0, 0.1)' } }}
         >
 
             <MainTabs.Screen
-                name="PostsScreen"
-                component={PostsScreen}
+                name="PostsScreenNavigation"
+                component={PostsScreenNavigation}
                 options={{
-                    headerRight: () => (
-                        <TouchableOpacity
-                            activeOpacity={0.6}
-                            style={{ marginRight: 16 }}
-                            onPress={() => alert("LogOut")}
-                        >
-                            <MaterialCommunityIcons name="logout" size={24} color="#BDBDBD" />
-                        </TouchableOpacity>                        
-                    ),
-                    headerTitleAlign: "center",
-                    headerTitle: 'Posts',
-                    headerStyle: { borderBottomWidth: 1, borderColor: 'rgba(0, 0, 0, 0.3)' },                    
+                    headerShown: false,                   
                     tabBarIcon: ({ focused, color, size }) => (
                         <View style={{...styles.icon, backgroundColor: focused ? '#FF6C00' : '#ffffff'}}>
                             <Entypo name="images" size={size} color={focused ? '#ffffff' : '#212121'} />
@@ -62,6 +51,7 @@ export default function Home() {
                     headerTitle: 'Create Post',
                     headerTitleAlign: "center",
                     headerStyle: { borderBottomWidth: 1, borderColor: 'rgba(0, 0, 0, 0.3)' },
+                    tabBarHideOnKeyboard: true,
                     tabBarIcon: ({ focused, color, size }) => (
                         <View style={{...styles.icon, backgroundColor: focused ? '#FF6C00' : '#ffffff'}}>
                             <Ionicons name="add-sharp" size={size} color={focused ? '#ffffff' : '#212121'} />
