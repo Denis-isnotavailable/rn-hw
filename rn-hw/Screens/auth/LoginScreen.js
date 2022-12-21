@@ -12,6 +12,10 @@ import {
     TouchableWithoutFeedback
 } from 'react-native';
 
+import { useDispatch } from 'react-redux';
+
+import { authSignInUser } from '../../redux/auth/authOperations';
+
 const initialEmail = '';
 const initialPassword = '';
 
@@ -19,8 +23,11 @@ const initialPassword = '';
 export default function LoginScreen({ navigation }) {
   const [visualPassword, setVisualPassword] = useState(true);
   const [isKeabordShown, setIsKeabordShown] = useState(false);
+
   const [email, setEmail] = useState(initialEmail);
-  const [password, setPassword] = useState(initialPassword);     
+  const [password, setPassword] = useState(initialPassword);
+  
+  const dispatch = useDispatch();
 
   function onPressTogglePasswordVisualisation() {
     setVisualPassword(!visualPassword);        
@@ -31,9 +38,11 @@ export default function LoginScreen({ navigation }) {
     
     setEmail(initialEmail);
     setPassword(initialPassword);
+
+    dispatch(authSignInUser({ email, password }));
     
-    console.log("LOGIN", email);
-    console.log("LOGIN", password);
+    console.log("LOGIN email", email);
+    console.log("LOGIN password", password);
     
     navigation.navigate("Home");
   }

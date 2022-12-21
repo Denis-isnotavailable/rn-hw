@@ -8,21 +8,53 @@ import {
     FlatList,
 } from 'react-native';
 
+import { useSelector } from "react-redux";
+
 import { FontAwesome } from '@expo/vector-icons';
 import { Ionicons } from '@expo/vector-icons';
 
+import { collection, getDocs } from "firebase/firestore"; 
 
-export default function PostsScreen({ navigation, route }) {
+import { db } from '../../firebase/config';
+
+
+export default function PostsScreen({ navigation }) {
     const [posts, setPosts] = useState([]);
+    // const [commetntsCount, setCommetntsCount] = useState([]);
 
-    useEffect(() => {
-        if (route.params?.photoData) {
-            setPosts(prev => [...prev, route.params.photoData]);
-        }
-        
-    }, [route.params]);
+    const { nickname, email } = useSelector(state => state.auth)
     
-    console.log("posts", posts);
+    useEffect(() => {        
+        getAllPosts();        
+        // getCommentsList();        
+    }, []); 
+    
+    const getAllPosts = async () => {
+        const querySnapshot = await getDocs(collection(db, "posts"));
+
+        if (querySnapshot) {
+            setPosts(querySnapshot.docs.map(doc => ({ ...doc.data(), id: doc.id })));
+        }                
+    }
+
+    // const getCommentsList = () => {
+    //     posts.map(post => {
+    //         const postId = post.id;
+    //         getCommentsFromFirebase(postId);            
+    //     })                
+    // }
+
+    // const getCommentsFromFirebase = async (postId) => {
+    //     const querySnapshot = await getDocs(collection(db, "posts", postId, "comments"));
+    //     if (querySnapshot) {
+    //         console.log("querySnapshot", querySnapshot);
+    //         setCommetntsCount(prev => [...prev, { name: postId, quantity: querySnapshot.docs?.length } ]);
+    //     }                 
+    // }
+
+
+    
+    // console.log("posts", posts);    
 
     return (
         <View style={styles.container}>
@@ -30,14 +62,14 @@ export default function PostsScreen({ navigation, route }) {
             <View style={styles.avatar} ></View>
         
             <View style={styles.usersData} >
-                <Text style={styles.usersLogin} >Natali Romanova</Text>
-                <Text style={styles.usersEmail} >email@example.com</Text>
+                <Text style={styles.usersLogin} >{ nickname }</Text>
+                <Text style={styles.usersEmail} >{ email }</Text>
             </View>
 
             <FlatList data={posts} keyExtractor={(item, index) => index.toString()} renderItem={({ item }) => (
                 <View style={styles.pictureContainer}>
                     <View style={styles.picture} >
-                        <Image source={{uri: item.photoUri}} style={{width: '100%', height: 240, borderRadius: 8,}} />
+                        <Image source={{uri: item.photo}} style={{width: '100%', height: 240, borderRadius: 8,}} />
                     </View>
 
                     <Text style={styles.title}>{ item.title }</Text>
@@ -46,7 +78,7 @@ export default function PostsScreen({ navigation, route }) {
                         <TouchableOpacity
                             activeOpacity={0.6}
                             style={styles.commentsButton}
-                            onPress={() => navigation.navigate("CommentsScreen")}
+                            onPress={() => navigation.navigate("CommentsScreen", {postId: item.id, photo: item.photo})}
                         >
                             <FontAwesome name="comment-o" size={24} color="#bdbdbd" />
                             <Text style={styles.commentsText}>0</Text>
@@ -114,12 +146,7 @@ const styles = StyleSheet.create({
     },
 
     picture: {
-        // height: 240,
         marginBottom: 8,
-        // backgroundColor: '#000000',
-        // alignItems: "center",
-        // justifyContent: "center",
-        // borderRadius: 8,
     },
 
     title: {        
@@ -138,7 +165,7 @@ const styles = StyleSheet.create({
     },
 
     mapButton: {
-        flexDirection: "row",
+        flexDirection: "row",        
     },
 
     commentsText: {
@@ -147,5 +174,6 @@ const styles = StyleSheet.create({
 
     locationText: {
         marginLeft: 6,
+        marginRight: 16,
     },
 });

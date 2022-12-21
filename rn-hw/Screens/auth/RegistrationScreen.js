@@ -11,6 +11,9 @@ import {
     KeyboardAvoidingView,
     TouchableWithoutFeedback
 } from 'react-native';
+import { useDispatch } from 'react-redux';
+
+import { authSignUpUser } from '../../redux/auth/authOperations';
 
 const initialLogin = '';
 const initialEmail = '';
@@ -19,9 +22,12 @@ const initialPassword = '';
 export default function RegistrationScreen({ navigation }) {
   const [visualPassword, setVisualPassword] = useState(true);
   const [isKeabordShown, setIsKeabordShown] = useState(false);
+
   const [login, setLogin] = useState(initialLogin);
   const [email, setEmail] = useState(initialEmail);
-  const [password, setPassword] = useState(initialPassword);    
+  const [password, setPassword] = useState(initialPassword);
+  
+  const dispatch = useDispatch();
   
     
 
@@ -36,9 +42,11 @@ export default function RegistrationScreen({ navigation }) {
     setEmail(initialEmail);
     setPassword(initialPassword);
 
-    console.log("SIGNUP", login);
-    console.log("SIGNUP", email);
-    console.log("SIGNUP", password);
+    dispatch(authSignUpUser({ login, email, password }));
+
+    console.log("SIGNUP Login", login);
+    console.log("SIGNUP Email", email);
+    console.log("SIGNUP Password", password);
       
     navigation.navigate("Home");
   }

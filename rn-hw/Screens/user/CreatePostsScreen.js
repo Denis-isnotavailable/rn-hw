@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
     StyleSheet,
     Text,
@@ -10,10 +10,19 @@ import {
     KeyboardAvoidingView,
     TouchableWithoutFeedback
 } from 'react-native';
+
+import { useSelector } from 'react-redux';
+
 import { FontAwesome } from '@expo/vector-icons';
 import { Camera } from "expo-camera";
+
 import * as MediaLibrary from "expo-media-library";
 import * as Location from "expo-location";
+
+import { getStorage, ref, uploadBytes, getDownloadURL } from "firebase/storage";
+import { collection, addDoc } from "firebase/firestore";
+
+import { db } from '../../firebase/config';
 
 
 export default function CreatePostsScreen({ navigation }) {
@@ -21,9 +30,12 @@ export default function CreatePostsScreen({ navigation }) {
     // const [hasPermission, setHasPermission] = useState(null);
     const [cameraRef, setCameraRef] = useState(null);
     const [photoUri, setPhotoUri] = useState('');
+
     const [title, setTitle] = useState('');
     const [disposition, setDisposition] = useState('');
-    const [location, setLocation] = useState(null);
+    const [location, setLocation] = useState(null); 
+    
+    const { userId, nickname } = useSelector(state => state.auth);
 
     // useEffect(() => {
     //     (async () => {
@@ -62,14 +74,48 @@ export default function CreatePostsScreen({ navigation }) {
         setPhotoUri(uri); 
     }
 
-    const createAndLoadPostData = async () => {        
-        const photoData = { photoUri, title, disposition, location };
+    const loadPhotoToFirebaseStorage = async () => {
+        const response = await fetch(photoUri);
+        const file = await response.blob();
+
+        const uniqName = Date.now().toString();
+
+        const storage = getStorage();
+        const storageRef = ref(storage, `images/${uniqName}`);
+        await uploadBytes(storageRef, file);
+
+        const pathReference = ref(storage, `images/${uniqName}`);
+        const url = await getDownloadURL(pathReference);
+
+        return url;
+    };
+
+    const loadPostDataToFirebaseCloud = async () => {
+        const photo = await loadPhotoToFirebaseStorage();
+        
+        try {
+            const docRef = await addDoc(collection(db, "posts"), {
+                photo,
+                title,
+                disposition,
+                location,
+                userId,
+                nickname
+            });
+            console.log("Document written with ID: ", docRef.id);
+        } catch (e) {
+            console.error("Error adding document: ", e);
+        }
+    }
+
+    const createAndLoadPostData = async () => {       
+        await loadPostDataToFirebaseCloud();
+        navigation.navigate("PostsScreen");
+
         setPhotoUri('');
         setTitle('');
         setDisposition('');
         setLocation(null);
-        // console.log("photoData", photoData);
-        navigation.navigate("PostsScreen", { photoData });
     }
 
     function onInputFocus() {
@@ -85,7 +131,7 @@ export default function CreatePostsScreen({ navigation }) {
         <TouchableWithoutFeedback onPress={hideKeaboard}>
       
             <View style={styles.container}>
-                
+
                 <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"}>
 
                     <Camera
@@ -125,12 +171,13 @@ export default function CreatePostsScreen({ navigation }) {
                         onPress={createAndLoadPostData}
                     >
                         <Text style={{...styles.loadBtnText, color: photoUri ? '#ffffff' : '#bdbdbd'}}>PUBLISH POST</Text>
-                    </TouchableOpacity>
-                    
+                    </TouchableOpacity> 
 
                 </KeyboardAvoidingView>
                 
             </View>
+
+            
             
         </TouchableWithoutFeedback>
     );
